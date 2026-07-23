@@ -8,3 +8,9 @@ export interface TargetPreset {
   noun: string;
   profile: RadiusProfile;
 }
+
+export interface RankingEntry {
+  nickname: string;
+  score: number;
+  registeredAt: number;
+}
