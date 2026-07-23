@@ -1,9 +1,9 @@
-import { mkdtemp, rm, writeFile } from "fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "fs/promises";
 import { tmpdir } from "os";
 import path from "path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { RankingEntry } from "@/types/pottery";
-import { readTop5 } from "./store";
+import { readTop5, submitScore } from "./store";
 
 describe("ranking store", () => {
   let dir: string;
@@ -41,5 +41,55 @@ describe("ranking store", () => {
     const [a, b] = await Promise.all([readTop5(filePath), readTop5(filePath)]);
     expect(a).toEqual(b);
     expect(a).toEqual(entries);
+  });
+
+  describe("submitScore", () => {
+    it("[S7-1] top5 안에 들면 즉시 반영되어 이후 조회에도 보인다", async () => {
+      const existing: RankingEntry[] = [
+        { nickname: "매끈한 단지", score: 258, registeredAt: 100 },
+        { nickname: "우아한 그릇", score: 244, registeredAt: 200 },
+      ];
+      await writeFile(filePath, JSON.stringify(existing));
+
+      const entry: RankingEntry = { nickname: "찌그러진 항아리", score: 231, registeredAt: 300 };
+      const result = await submitScore(filePath, entry);
+
+      expect(result.madeTop5).toBe(true);
+      expect(result.entries).toContainEqual(entry);
+
+      const persisted = JSON.parse(await readFile(filePath, "utf-8"));
+      expect(persisted).toContainEqual(entry);
+    });
+
+    it("[S7-2] top5에 들지 못하면 랭킹 파일이 변경되지 않는다", async () => {
+      const existing: RankingEntry[] = [
+        { nickname: "1", score: 100, registeredAt: 1 },
+        { nickname: "2", score: 99, registeredAt: 2 },
+        { nickname: "3", score: 98, registeredAt: 3 },
+        { nickname: "4", score: 97, registeredAt: 4 },
+        { nickname: "5", score: 96, registeredAt: 5 },
+      ];
+      await writeFile(filePath, JSON.stringify(existing));
+
+      const entry: RankingEntry = { nickname: "미달", score: 50, registeredAt: 6 };
+      const result = await submitScore(filePath, entry);
+
+      expect(result.madeTop5).toBe(false);
+      expect(result.entries).toEqual(existing);
+
+      const persisted = JSON.parse(await readFile(filePath, "utf-8"));
+      expect(persisted).toEqual(existing);
+    });
+
+    it("[S7-3] 동점이면 먼저 등록된 기록이 더 상위 순위를 유지한다", async () => {
+      const existing: RankingEntry[] = [{ nickname: "먼저 등록", score: 200, registeredAt: 100 }];
+      await writeFile(filePath, JSON.stringify(existing));
+
+      const entry: RankingEntry = { nickname: "나중 등록", score: 200, registeredAt: 200 };
+      const result = await submitScore(filePath, entry);
+
+      expect(result.entries[0]).toEqual(existing[0]);
+      expect(result.entries[1]).toEqual(entry);
+    });
   });
 });
