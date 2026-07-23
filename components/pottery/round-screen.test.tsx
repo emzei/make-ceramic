@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DIFFICULTY_PRESETS } from "@/config/pottery";
+import { usePotteryGame } from "@/hooks/use-pottery-game";
 import { RoundScreen } from "./round-screen";
 
 const targetProfile = DIFFICULTY_PRESETS[1][0].profile;
@@ -108,5 +109,32 @@ describe("RoundScreen", () => {
     );
 
     expect(screen.getByText("82")).toBeInTheDocument();
+  });
+
+  it("[S4-2] use-pottery-game이 계산한 점수가 화면에 실제로 표시된다", () => {
+    function Wrapper() {
+      const game = usePotteryGame();
+      return (
+        <RoundScreen
+          targetProfile={game.currentTarget.profile}
+          roundIndex={game.roundIndex}
+          totalRounds={game.totalRounds}
+          roundScore={game.roundScore}
+          onRoundEnd={game.handleRoundEnd}
+        />
+      );
+    }
+
+    render(<Wrapper />);
+    fireEvent.pointerDown(screen.getByTestId("clay-canvas"), { clientX: 80, clientY: 150, pointerType: "mouse" });
+
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+
+    const badgeText = screen.queryByText(/^\d+$/);
+    expect(badgeText).not.toBeNull();
+    expect(Number(badgeText?.textContent)).toBeGreaterThanOrEqual(0);
+    expect(Number(badgeText?.textContent)).toBeLessThanOrEqual(100);
   });
 });
