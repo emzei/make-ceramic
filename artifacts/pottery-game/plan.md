@@ -71,7 +71,7 @@
 
 ## Tasks
 
-### Task 1: 채점 로직 + 목표 실루엣 데이터
+### [완료] Task 1: 채점 로직 + 목표 실루엣 데이터
 
 - **담당 판정 기준**: INV-4
 - **크기**: M (4 파일)
@@ -90,7 +90,7 @@
 
 ---
 
-### Task 2: 라운드 진행 화면 — 목표+반죽 표시, 포인터/터치 깎기, 시간 종료 시 잠금
+### [완료] Task 2: 라운드 진행 화면 — 목표+반죽 표시, 포인터/터치 깎기, 시간 종료 시 잠금
 
 - **담당 판정 기준**: S2-1, S2-2, S3-1, S4-1, INV-1, INV-3
 - **크기**: M (4 파일)
@@ -110,7 +110,7 @@
 
 ---
 
-### Task 3: 라운드 결과 계산 + 자동 다음 라운드 오케스트레이터
+### [완료] Task 3: 라운드 결과 계산 + 자동 다음 라운드 오케스트레이터
 
 - **담당 판정 기준**: S4-2, S4-3, S5-1, S5-2
 - **크기**: M (3 파일)
@@ -128,14 +128,14 @@
 ---
 
 ### Checkpoint: Task 1~3 이후
-- [ ] 모든 테스트 통과: `bun run test`
-- [ ] 빌드 성공: `bun run build`
-- [ ] 커버리지 검사 통과: `scripts/spec-coverage.sh pottery-game --tests`
-- [ ] 단일 라운드가 초기화 → 깎기 → 시간 종료(fake timer) → 채점 → 다음 라운드 자동 전환까지 `use-pottery-game` 통합 테스트로 동작 확인
+- [x] 모든 테스트 통과: `bun run test`
+- [x] 빌드 성공: `bun run build`
+- [x] 커버리지 검사 통과: `scripts/spec-coverage.sh pottery-game --tests`
+- [x] 단일 라운드가 초기화 → 깎기 → 시간 종료(fake timer) → 채점 → 다음 라운드 자동 전환까지 `use-pottery-game` 통합 테스트로 동작 확인
 
 ---
 
-### Task 4: 공유 랭킹 저장소 + 조회 API
+### [완료] Task 4: 공유 랭킹 저장소 + 조회 API
 
 - **담당 판정 기준**: INV-2
 - **크기**: M (5 파일, `.gitignore` 한 줄 추가 포함)
@@ -155,7 +155,7 @@
 
 ---
 
-### Task 5: 메인 화면 UI
+### [완료] Task 5: 메인 화면 UI
 
 - **담당 판정 기준**: S1-1
 - **크기**: M (3 파일)
@@ -174,14 +174,14 @@
 ---
 
 ### Checkpoint: Task 4~5 이후
-- [ ] 모든 테스트 통과: `bun run test`
-- [ ] 빌드 성공: `bun run build`
-- [ ] 커버리지 검사 통과: `scripts/spec-coverage.sh pottery-game --tests`
-- [ ] 메인 화면이 `/api/ranking` 실제 응답을 받아 top-5(또는 빈 상태)를 표시함을 확인
+- [x] 모든 테스트 통과: `bun run test`
+- [x] 빌드 성공: `bun run build`
+- [x] 커버리지 검사 통과: `scripts/spec-coverage.sh pottery-game --tests`
+- [x] 메인 화면이 `/api/ranking` 실제 응답을 받아 top-5(또는 빈 상태)를 표시함을 확인
 
 ---
 
-### Task 6: 최종 점수 합산 + 자동 닉네임
+### [완료] Task 6: 최종 점수 합산 + 자동 닉네임
 
 - **담당 판정 기준**: S6-1, S6-2
 - **크기**: S (3 파일)
@@ -198,7 +198,7 @@
 
 ---
 
-### Task 7: 랭킹 등록(POST, 동점 처리) + 최종 결과 화면
+### [완료] Task 7: 랭킹 등록(POST, 동점 처리) + 최종 결과 화면
 
 - **담당 판정 기준**: S7-1, S7-2, S7-3
 - **크기**: M (5 파일)
@@ -219,14 +219,14 @@
 ---
 
 ### Checkpoint: Task 6~7 이후
-- [ ] 모든 테스트 통과: `bun run test`
-- [ ] 빌드 성공: `bun run build`
-- [ ] 커버리지 검사 통과: `scripts/spec-coverage.sh pottery-game --tests`
-- [ ] 최종 점수 합산 → 닉네임 생성 → 랭킹 등록/미등록 분기까지 동작 확인
+- [x] 모든 테스트 통과: `bun run test`
+- [x] 빌드 성공: `bun run build`
+- [x] 커버리지 검사 통과: `scripts/spec-coverage.sh pottery-game --tests`
+- [x] 최종 점수 합산 → 닉네임 생성 → 랭킹 등록/미등록 분기까지 동작 확인
 
 ---
 
-### Task 8: 전체 화면 흐름 연결 + E2E
+### [완료] Task 8: 전체 화면 흐름 연결 + E2E
 
 - **담당 판정 기준**: S1-2, S8-1
 - **크기**: M (5 파일)
@@ -248,8 +248,8 @@
 ---
 
 ### 최종 Checkpoint
-- [ ] spec.md의 **End-to-end 검증** 절차를 실행하고, 통과한 판정 기준의 체크박스를 spec.md에서 켠다 (체크는 실행 증거로만 켠다)
-- [ ] `scripts/spec-coverage.sh pottery-game --tests --wireframe` 통과
+- [x] spec.md의 **End-to-end 검증** 절차를 실행하고, 통과한 판정 기준의 체크박스를 spec.md에서 켠다 (체크는 실행 증거로만 켠다)
+- [x] `scripts/spec-coverage.sh pottery-game --tests --wireframe` 통과
 
 ## 미결정 항목
 
