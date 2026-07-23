@@ -16,6 +16,9 @@ export interface ResultScreenProps {
 export function ResultScreen({ totalScore, nickname, onPlayAgain }: ResultScreenProps) {
   const [ranking, setRanking] = useState<RankingEntry[] | null>(null);
   const [ownRegisteredAt, setOwnRegisteredAt] = useState<number | null>(null);
+  // 서버가 랭킹 내 닉네임 중복을 피하려고 뒤에 숫자를 붙였을 수 있으므로(예: "매끈한 항아리 2"),
+  // 응답으로 돌아온 실제 등록 닉네임을 본인 강조 매칭과 화면 표시에 사용한다.
+  const [registeredNickname, setRegisteredNickname] = useState(nickname);
   // Strict Mode에서 effect가 mount -> cleanup -> remount로 두 번 실행돼도 실제 네트워크
   // 요청은 한 번만 나가도록, in-flight Promise 자체를 캐싱해 재사용한다 (불리언 플래그로
   // 막으면 살아남는 두 번째 effect가 자신만의 완료 핸들러를 붙이지 못해 상태가 영영 null로 남는다).
@@ -32,6 +35,7 @@ export function ResultScreen({ totalScore, nickname, onPlayAgain }: ResultScreen
         if (!cancelled) {
           setRanking(result.entries);
           setOwnRegisteredAt(result.madeTop5 ? result.registeredAt : null);
+          if (result.madeTop5) setRegisteredNickname(result.nickname);
         }
       })
       .catch((err) => {
@@ -51,7 +55,7 @@ export function ResultScreen({ totalScore, nickname, onPlayAgain }: ResultScreen
         <span data-testid="total-score" className="text-6xl font-bold">
           {totalScore}
         </span>
-        <span className="text-lg font-bold">{nickname}</span>
+        <span className="text-lg font-bold">{registeredNickname}</span>
         <Button size="lg" className="mt-4" onClick={onPlayAgain}>
           다시 하기
         </Button>
@@ -62,11 +66,14 @@ export function ResultScreen({ totalScore, nickname, onPlayAgain }: ResultScreen
           <CardHeader>
             <CardTitle>전체 랭킹 TOP 5</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-3">
             <RankingList
               entries={ranking}
-              highlightEntry={ownRegisteredAt !== null ? { nickname, registeredAt: ownRegisteredAt } : null}
+              highlightEntry={
+                ownRegisteredAt !== null ? { nickname: registeredNickname, registeredAt: ownRegisteredAt } : null
+              }
             />
+            <p className="text-xs text-muted-foreground">랭킹은 매주 월요일 00:00에 초기화됩니다</p>
           </CardContent>
         </Card>
       )}

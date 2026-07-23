@@ -37,6 +37,14 @@ describe("MainScreen", () => {
     await waitFor(() => expect(screen.getByText("아직 등록된 기록이 없습니다")).toBeInTheDocument());
   });
 
+  it("[S7-5] 랭킹 목록 하단에 매주 초기화 안내 문구를 표시한다", async () => {
+    mockedGetTopRanking.mockResolvedValue([{ nickname: "균형잡힌 화병", score: 271, registeredAt: 1 }]);
+
+    render(<MainScreen onStart={vi.fn()} />);
+
+    await waitFor(() => expect(screen.getByText(/매주 월요일 00:00에 초기화/)).toBeInTheDocument());
+  });
+
   it("'시작하기' 클릭 시 onStart가 호출된다", async () => {
     mockedGetTopRanking.mockResolvedValue([]);
     const onStart = vi.fn();

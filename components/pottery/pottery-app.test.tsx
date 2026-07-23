@@ -37,7 +37,7 @@ describe("PotteryApp", () => {
     vi.useFakeTimers();
     mockCanvasRect();
     mockedGetTopRanking.mockResolvedValue([]);
-    mockedSubmitScore.mockResolvedValue({ entries: [], madeTop5: true, registeredAt: 1 });
+    mockedSubmitScore.mockResolvedValue({ entries: [], madeTop5: true, nickname: "닉네임", registeredAt: 1 });
   });
 
   afterEach(() => {
@@ -63,11 +63,9 @@ describe("PotteryApp", () => {
     for (let round = 1; round <= 3; round++) {
       expect(screen.getByText(`${round} / 3 라운드`)).toBeInTheDocument();
       await playThroughRound();
-      if (round < 3) {
-        await act(async () => {
-          vi.advanceTimersByTime(RESULT_DISPLAY_MS);
-        });
-      }
+      await act(async () => {
+        vi.advanceTimersByTime(RESULT_DISPLAY_MS);
+      });
     }
 
     await act(async () => {

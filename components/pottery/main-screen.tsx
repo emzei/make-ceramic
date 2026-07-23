@@ -32,7 +32,7 @@ export function MainScreen({ onStart }: MainScreenProps) {
     <div className="flex flex-col gap-6 p-6 md:flex-row md:gap-10">
       <div className="flex flex-col items-center gap-4 md:w-1/2 md:items-start">
         <h1 className="text-2xl font-bold">도자기 물레 깎기</h1>
-        <p className="text-sm text-muted-foreground">3라운드 · 라운드당 15초</p>
+        <p className="text-sm text-muted-foreground">3라운드 · 라운드당 7초</p>
         <Button size="lg" onClick={onStart}>
           시작하기
         </Button>
@@ -42,12 +42,13 @@ export function MainScreen({ onStart }: MainScreenProps) {
         <CardHeader>
           <CardTitle>전체 랭킹 TOP 5</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-3">
           {ranking === null ? null : ranking.length === 0 ? (
             <p className="text-sm text-muted-foreground">아직 등록된 기록이 없습니다</p>
           ) : (
             <RankingList entries={ranking} />
           )}
+          <p className="text-xs text-muted-foreground">랭킹은 매주 월요일 00:00에 초기화됩니다</p>
         </CardContent>
       </Card>
     </div>

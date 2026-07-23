@@ -85,6 +85,40 @@ describe("usePotteryGame", () => {
     );
   });
 
+  it("[S5-3] skipToNextRound을 호출하면 남은 대기 시간과 무관하게 즉시 다음 라운드로 전환된다", () => {
+    const { result } = renderHook(() => usePotteryGame());
+
+    act(() => {
+      result.current.handleRoundEnd(result.current.currentTarget.profile);
+    });
+    expect(result.current.roundIndex).toBe(1);
+
+    act(() => {
+      result.current.skipToNextRound();
+    });
+
+    expect(result.current.roundIndex).toBe(2);
+    expect(result.current.roundScore).toBeNull();
+  });
+
+  it("[S5-3] skipToNextRound 이후 원래 예약된 자동 전환 타이머가 나중에 발동해도 중복 전환되지 않는다", () => {
+    const { result } = renderHook(() => usePotteryGame());
+
+    act(() => {
+      result.current.handleRoundEnd(result.current.currentTarget.profile);
+    });
+    act(() => {
+      result.current.skipToNextRound();
+    });
+    expect(result.current.roundIndex).toBe(2);
+
+    act(() => {
+      vi.advanceTimersByTime(RESULT_DISPLAY_MS * 2);
+    });
+
+    expect(result.current.roundIndex).toBe(2);
+  });
+
   it("마지막 라운드 종료 후에는 자동 전환이 일어나지 않는다", () => {
     const { result } = renderHook(() => usePotteryGame());
 
@@ -136,6 +170,9 @@ describe("usePotteryGame", () => {
     act(() => {
       result.current.handleRoundEnd(result.current.currentTarget.profile);
     });
+    act(() => {
+      vi.advanceTimersByTime(RESULT_DISPLAY_MS);
+    });
 
     const expectedTotal = result.current.completedScores.reduce((sum, s) => sum + s, 0);
     expect(result.current.totalScore).toBe(expectedTotal);
@@ -161,6 +198,9 @@ describe("usePotteryGame", () => {
 
     act(() => {
       result.current.handleRoundEnd(result.current.currentTarget.profile);
+    });
+    act(() => {
+      vi.advanceTimersByTime(RESULT_DISPLAY_MS);
     });
 
     expect(result.current.nickname).not.toBeNull();

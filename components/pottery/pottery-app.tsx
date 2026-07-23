@@ -24,7 +24,9 @@ function GameSession({ onPlayAgain }: GameSessionProps) {
       roundIndex={game.roundIndex}
       totalRounds={game.totalRounds}
       roundScore={game.roundScore}
+      completedScores={game.completedScores}
       onRoundEnd={game.handleRoundEnd}
+      onSkipToNextRound={game.skipToNextRound}
     />
   );
 }

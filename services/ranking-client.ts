@@ -9,6 +9,7 @@ export async function getTopRanking(): Promise<RankingEntry[]> {
 export interface SubmitScoreResponse {
   entries: RankingEntry[];
   madeTop5: boolean;
+  nickname: string;
   registeredAt: number;
 }
 

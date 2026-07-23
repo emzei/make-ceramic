@@ -92,7 +92,7 @@
 
 ### [완료] Task 2: 라운드 진행 화면 — 목표+반죽 표시, 포인터/터치 깎기, 시간 종료 시 잠금
 
-- **담당 판정 기준**: S2-1, S2-2, S3-1, S4-1, INV-1, INV-3
+- **담당 판정 기준**: S2-1, S2-2, S2-3, S3-1, S4-1, INV-1, INV-3
 - **크기**: M (4 파일)
 - **의존성**: Task 1 (RadiusProfile 타입, ROUND_DURATION_MS·BASE_CLAY_RADIUS 상수)
 - **참조**:
@@ -105,14 +105,14 @@
   - `components/pottery/round-screen.tsx` (목표 실루엣 오버레이 + 반죽 SVG + 15초 카운트다운, 만료 시 `onRoundEnd(finalProfile)` 콜백 1회 호출 후 조작 무시. `roundScore: number | null` prop을 받아 `null`이면 진행 중 화면을, 값이 있으면 wireframe `#screen-round-result`/`#screen-round-overcarved`처럼 흐려진 실루엣 + 점수 배지를 렌더 — 실제 값 주입은 Task 3)
   - `components/pottery/round-screen.test.tsx`
 - **검증**:
-  - `bun run test -- round-screen|use-clay-carving` — `[S2-1]`, `[S2-2]`, `[S3-1]`, `[S4-1]`, `[INV-1]`, `[INV-3]` 인용. INV-1은 동일 좌표에 `pointerType: 'mouse'`와 `'touch'`로 각각 fireEvent해 동일 결과인지 비교
+  - `bun run test -- round-screen|use-clay-carving` — `[S2-1]`, `[S2-2]`, `[S2-3]`, `[S3-1]`, `[S4-1]`, `[INV-1]`, `[INV-3]` 인용. INV-1은 동일 좌표에 `pointerType: 'mouse'`와 `'touch'`로 각각 fireEvent해 동일 결과인지 비교
   - `bun run typecheck`
 
 ---
 
 ### [완료] Task 3: 라운드 결과 계산 + 자동 다음 라운드 오케스트레이터
 
-- **담당 판정 기준**: S4-2, S4-3, S5-1, S5-2
+- **담당 판정 기준**: S4-2, S4-3, S5-1, S5-2, S5-3, S5-4
 - **크기**: M (3 파일)
 - **의존성**: Task 1 (scoring 함수), Task 2 (RoundScreen의 `onRoundEnd` 계약 및 `roundScore` prop)
 - **참조**:
@@ -122,7 +122,7 @@
   - `hooks/use-pottery-game.test.ts` (fake timers)
   - `components/pottery/round-screen.test.tsx` (Modify: `use-pottery-game`이 계산한 점수를 `roundScore` prop으로 주입한 RoundScreen을 렌더해 점수 배지 텍스트가 실제로 화면에 표시되는지 단언 — S4-2의 "화면에 표시된다"를 컴포넌트 수준에서 증명)
 - **검증**:
-  - `bun run test -- use-pottery-game|round-screen` — `[S4-2]`, `[S4-3]`, `[S5-1]`, `[S5-2]` 인용
+  - `bun run test -- use-pottery-game|round-screen` — `[S4-2]`, `[S4-3]`, `[S5-1]`, `[S5-2]`, `[S5-3]`, `[S5-4]` 인용
   - `bun run typecheck`
 
 ---
@@ -200,7 +200,7 @@
 
 ### [완료] Task 7: 랭킹 등록(POST, 동점 처리) + 최종 결과 화면
 
-- **담당 판정 기준**: S7-1, S7-2, S7-3
+- **담당 판정 기준**: S7-1, S7-2, S7-3, S7-4, S7-5
 - **크기**: M (5 파일)
 - **의존성**: Task 4 (`lib/ranking/store.ts`, `app/api/ranking/route.ts`), Task 6 (totalScore, 닉네임)
 - **참조**:
@@ -213,7 +213,7 @@
   - `services/ranking-client.ts` (Modify: `submitScore()` 추가)
   - `components/pottery/result-screen.tsx` (최종 점수 + 닉네임 + top5 표시, wireframe `.w-highlight`처럼 본인 기록이 top5에 있으면 강조 표시, top5 미진입 시 랭킹 리스트에 자기 기록 미표시. "다시 하기" 버튼은 표시만, 클릭 동작은 Task 8)
 - **검증**:
-  - `bun run test -- ranking-store|result-screen` — `[S7-1]`, `[S7-2]`, `[S7-3]` 인용 (동점 시 등록 순서 보존 케이스 포함)
+  - `bun run test -- ranking-store|result-screen` — `[S7-1]`, `[S7-2]`, `[S7-3]`, `[S7-4]`, `[S7-5]` 인용 (동점 시 등록 순서 보존 케이스 포함)
   - `bun run typecheck`
 
 ---

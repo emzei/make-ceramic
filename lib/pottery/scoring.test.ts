@@ -31,4 +31,12 @@ describe("scoring", () => {
     const farMatch = target.map((r) => Math.max(0, r - 20));
     expect(computeScore(closeMatch, target)).toBeGreaterThan(computeScore(farMatch, target));
   });
+
+  it("동일한 평균 오차라면 예전 선형 채점보다 낮은 점수를 준다 (곡선형 페널티)", () => {
+    const target = new Array(RADIUS_SAMPLES).fill(BASE_CLAY_RADIUS);
+    const avgDiff = 20;
+    const current = target.map((r) => r - avgDiff);
+    const linearScore = Math.round(100 * (1 - avgDiff / BASE_CLAY_RADIUS));
+    expect(computeScore(current, target)).toBeLessThan(linearScore);
+  });
 });
