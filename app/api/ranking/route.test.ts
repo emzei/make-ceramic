@@ -4,7 +4,7 @@ import { readTop5, submitScore } from "@/lib/ranking/store";
 import { GET, POST } from "./route";
 
 vi.mock("@/lib/ranking/store", () => ({
-  DEFAULT_RANKING_PATH: "data/ranking.json",
+  DEFAULT_RANKING_TABLE: "ranking_entries",
   readTop5: vi.fn(),
   submitScore: vi.fn(),
 }));
@@ -34,25 +34,49 @@ describe("GET/POST /api/ranking", () => {
   });
 
   it("유효한 요청은 submitScore를 호출하고 결과를 반환한다", async () => {
-    mockedSubmitScore.mockResolvedValue({ entries: [], madeTop5: true });
+    mockedSubmitScore.mockResolvedValue({
+      entries: [],
+      madeTop5: true,
+      entry: { nickname: "닉네임", score: 231, registeredAt: 1 },
+    });
 
     const res = await POST(postRequest({ nickname: "닉네임", score: 231 }));
 
     expect(res.status).toBe(200);
     expect(mockedSubmitScore).toHaveBeenCalledWith(
-      "data/ranking.json",
-      expect.objectContaining({ nickname: "닉네임", score: 231 })
+      "ranking_entries",
+      expect.objectContaining({ nickname: "닉네임", score: 231 }),
+      expect.any(Number)
+    );
+  });
+
+  it("submitScore가 중복 방지를 위해 닉네임을 바꾼 경우 응답에 그 닉네임을 반환한다", async () => {
+    mockedSubmitScore.mockResolvedValue({
+      entries: [],
+      madeTop5: true,
+      entry: { nickname: "닉네임 2", score: 231, registeredAt: 1 },
+    });
+
+    const res = await POST(postRequest({ nickname: "닉네임", score: 231 }));
+
+    expect(await res.json()).toEqual(
+      expect.objectContaining({ nickname: "닉네임 2", registeredAt: 1 })
     );
   });
 
   it("score가 최댓값을 넘으면 MAX_TOTAL_SCORE로 clamp한다 (조작된 점수 방지)", async () => {
-    mockedSubmitScore.mockResolvedValue({ entries: [], madeTop5: true });
+    mockedSubmitScore.mockResolvedValue({
+      entries: [],
+      madeTop5: true,
+      entry: { nickname: "해커", score: MAX_TOTAL_SCORE, registeredAt: 1 },
+    });
 
     await POST(postRequest({ nickname: "해커", score: 999999 }));
 
     expect(mockedSubmitScore).toHaveBeenCalledWith(
-      "data/ranking.json",
-      expect.objectContaining({ score: MAX_TOTAL_SCORE })
+      "ranking_entries",
+      expect.objectContaining({ score: MAX_TOTAL_SCORE }),
+      expect.any(Number)
     );
   });
 

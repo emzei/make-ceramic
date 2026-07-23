@@ -21,9 +21,6 @@
 /.next/
 /out/
 
-# pottery-game local ranking store (temporary until a managed DB is added)
-/data/
-
 # production
 /build
 

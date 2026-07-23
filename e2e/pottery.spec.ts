@@ -1,19 +1,25 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { expect, test, type Page } from "@playwright/test";
+import { getSupabaseClient } from "@/lib/supabase/client";
+import { DEFAULT_RANKING_TABLE } from "@/lib/ranking/store";
 
-const RANKING_PATH = path.join(process.cwd(), "data", "ranking.json");
-const ROUND_DURATION_MS = 15000;
-const RESULT_DISPLAY_MS = 2000;
+const ROUND_DURATION_MS = 7000;
+const RESULT_DISPLAY_MS = 7000;
 
 test.use({ hasTouch: true });
-// 두 테스트 모두 서버가 공유하는 data/ranking.json을 직접 읽고 쓰므로, 병렬 실행 시
-// 서로의 기록이 뒤섞인다. 같은 파일을 다루는 테스트끼리는 반드시 순차 실행한다.
+// 두 테스트 모두 서버가 공유하는 ranking_entries 테이블을 직접 읽고 쓰므로, 병렬 실행 시
+// 서로의 기록이 뒤섞인다. 같은 테이블을 다루는 테스트끼리는 반드시 순차 실행한다.
 test.describe.configure({ mode: "serial" });
 
 async function seedRanking(entries: Array<{ nickname: string; score: number; registeredAt: number }>) {
-  await mkdir(path.dirname(RANKING_PATH), { recursive: true });
-  await writeFile(RANKING_PATH, JSON.stringify(entries));
+  const client = getSupabaseClient();
+  const { error: deleteError } = await client.from(DEFAULT_RANKING_TABLE).delete().gte("id", 0);
+  if (deleteError) throw deleteError;
+  if (entries.length === 0) return;
+
+  const { error: insertError } = await client
+    .from(DEFAULT_RANKING_TABLE)
+    .insert(entries.map((e) => ({ nickname: e.nickname, score: e.score, registered_at: e.registeredAt })));
+  if (insertError) throw insertError;
 }
 
 async function carveAtRelative(page: Page, xRatio: number, yRatio: number) {
@@ -62,10 +68,10 @@ test("골든 패스: 메인 -> 3라운드 -> 결과 -> 공유 랭킹 -> 다시 �
   await expect(page.getByTestId("clay-canvas")).toBeVisible();
   await expect(page.getByText("1 / 3 라운드")).toBeVisible();
 
-  // S2: 목표+반죽 실루엣, 15초 타이머
+  // S2: 목표+반죽 실루엣, 7초 타이머
   await expect(page.getByTestId("target-silhouette")).toBeVisible();
   await expect(page.getByTestId("clay-silhouette")).toBeVisible();
-  await expect(page.getByTestId("round-timer")).toHaveText("0:15");
+  await expect(page.getByTestId("round-timer")).toHaveText("0:07");
 
   // S3-1: 마우스로 깎으면 반죽 실루엣이 즉시 바뀐다
   const beforeMouseCarve = await page.getByTestId("clay-silhouette").getAttribute("d");
@@ -102,8 +108,9 @@ test("골든 패스: 메인 -> 3라운드 -> 결과 -> 공유 랭킹 -> 다시 �
   await advanceToNextRound(page);
   await expect(page.getByText("3 / 3 라운드")).toBeVisible();
 
-  // 3라운드 종료 -> S6: 합산 점수 + 자동 닉네임
+  // 3라운드 종료 -> S6: 합산 점수 + 자동 닉네임 (일정 시간 후 전환)
   await finishRound(page);
+  await advanceToNextRound(page);
   const totalScoreLocator = page.getByTestId("total-score");
   await expect(totalScoreLocator).toBeVisible();
   const totalScoreText = await totalScoreLocator.textContent();
@@ -151,12 +158,33 @@ test("S7-2: top5보다 낮은 점수는 공유 랭킹에 반영되지 않는다"
       await carveAtRelative(page, 0.5, y);
     }
     await finishRound(page);
-    if (round < 2) {
-      await advanceToNextRound(page);
-    }
+    await advanceToNextRound(page);
   }
 
   await expect(page.getByTestId("ranking-list")).toBeVisible();
   await expect(page.getByTestId("own-ranking-row")).toHaveCount(0);
   await expect(page.getByText("만점 항아리 1")).toBeVisible();
+});
+
+test("[S5-3] 3라운드 결과에서 '결과 보기' 버튼을 클릭하면 대기 시간과 무관하게 즉시 최종 결과로 전환된다", async ({
+  page,
+}) => {
+  await seedRanking([]);
+
+  await page.goto("/");
+  await page.clock.install();
+
+  await page.getByRole("button", { name: "시작하기" }).click();
+
+  for (let round = 0; round < 2; round++) {
+    await finishRound(page);
+    await advanceToNextRound(page);
+  }
+  await expect(page.getByText("3 / 3 라운드")).toBeVisible();
+
+  await finishRound(page);
+  await expect(page.getByRole("button", { name: "다음 라운드" })).not.toBeVisible();
+  await page.getByRole("button", { name: "결과 보기" }).click();
+
+  await expect(page.getByTestId("total-score")).toBeVisible();
 });

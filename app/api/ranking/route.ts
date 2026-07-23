@@ -1,5 +1,5 @@
 import { MAX_NICKNAME_LENGTH, MAX_TOTAL_SCORE } from "@/config/pottery";
-import { DEFAULT_RANKING_PATH, readTop5, submitScore } from "@/lib/ranking/store";
+import { DEFAULT_RANKING_TABLE, readTop5, submitScore } from "@/lib/ranking/store";
 import type { RankingEntry } from "@/types/pottery";
 
 export async function GET() {
@@ -38,11 +38,12 @@ export async function POST(request: Request) {
     registeredAt: Date.now(),
   };
 
-  const result = await submitScore(DEFAULT_RANKING_PATH, entry);
+  const result = await submitScore(DEFAULT_RANKING_TABLE, entry, entry.registeredAt);
 
   return Response.json({
     entries: result.entries,
     madeTop5: result.madeTop5,
-    registeredAt: entry.registeredAt,
+    nickname: result.entry.nickname,
+    registeredAt: result.entry.registeredAt,
   });
 }
