@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DIFFICULTY_PRESETS, RESULT_DISPLAY_MS, TOTAL_ROUNDS } from "@/config/pottery";
+import { generateNickname } from "@/lib/pottery/nickname";
 import { computeScore } from "@/lib/pottery/scoring";
 import type { DifficultyTier, RadiusProfile, TargetPreset } from "@/types/pottery";
 
@@ -16,6 +17,8 @@ export interface UsePotteryGameResult {
   currentTarget: TargetPreset;
   roundScore: number | null;
   completedScores: number[];
+  totalScore: number | null;
+  nickname: string | null;
   handleRoundEnd: (finalProfile: RadiusProfile) => void;
 }
 
@@ -24,6 +27,7 @@ export function usePotteryGame(): UsePotteryGameResult {
   const [currentTarget, setCurrentTarget] = useState<TargetPreset>(() => pickRandomPreset(1));
   const [roundScore, setRoundScore] = useState<number | null>(null);
   const [completedScores, setCompletedScores] = useState<number[]>([]);
+  const [nickname, setNickname] = useState<string | null>(null);
   const currentTargetRef = useRef(currentTarget);
   currentTargetRef.current = currentTarget;
 
@@ -32,6 +36,9 @@ export function usePotteryGame(): UsePotteryGameResult {
     setRoundScore(score);
     setCompletedScores((prev) => [...prev, score]);
   }, []);
+
+  const isGameOver = roundIndex >= TOTAL_ROUNDS && roundScore !== null;
+  const totalScore = isGameOver ? completedScores.reduce((sum, s) => sum + s, 0) : null;
 
   useEffect(() => {
     if (roundScore === null || roundIndex >= TOTAL_ROUNDS) return;
@@ -46,5 +53,19 @@ export function usePotteryGame(): UsePotteryGameResult {
     return () => clearTimeout(timeout);
   }, [roundScore, roundIndex]);
 
-  return { roundIndex, totalRounds: TOTAL_ROUNDS, currentTarget, roundScore, completedScores, handleRoundEnd };
+  useEffect(() => {
+    if (totalScore === null || nickname !== null) return;
+    setNickname(generateNickname(totalScore, currentTargetRef.current.noun));
+  }, [totalScore, nickname]);
+
+  return {
+    roundIndex,
+    totalRounds: TOTAL_ROUNDS,
+    currentTarget,
+    roundScore,
+    completedScores,
+    totalScore,
+    nickname,
+    handleRoundEnd,
+  };
 }

@@ -115,4 +115,55 @@ describe("usePotteryGame", () => {
     expect(result.current.roundScore).not.toBeNull();
     expect(result.current.completedScores).toHaveLength(3);
   });
+
+  it("[S6-1] 3라운드 종료 후 라운드별 점수를 합산한 최종 점수를 노출한다", () => {
+    const { result } = renderHook(() => usePotteryGame());
+
+    act(() => {
+      result.current.handleRoundEnd(result.current.currentTarget.profile);
+    });
+    act(() => {
+      vi.advanceTimersByTime(RESULT_DISPLAY_MS);
+    });
+    act(() => {
+      result.current.handleRoundEnd(result.current.currentTarget.profile);
+    });
+    act(() => {
+      vi.advanceTimersByTime(RESULT_DISPLAY_MS);
+    });
+    expect(result.current.totalScore).toBeNull();
+
+    act(() => {
+      result.current.handleRoundEnd(result.current.currentTarget.profile);
+    });
+
+    const expectedTotal = result.current.completedScores.reduce((sum, s) => sum + s, 0);
+    expect(result.current.totalScore).toBe(expectedTotal);
+  });
+
+  it("[S6-2] 최종 점수 산출 직후 마지막 라운드 목표의 noun을 포함한 닉네임이 함께 노출된다", () => {
+    const { result } = renderHook(() => usePotteryGame());
+
+    act(() => {
+      result.current.handleRoundEnd(result.current.currentTarget.profile);
+    });
+    act(() => {
+      vi.advanceTimersByTime(RESULT_DISPLAY_MS);
+    });
+    act(() => {
+      result.current.handleRoundEnd(result.current.currentTarget.profile);
+    });
+    act(() => {
+      vi.advanceTimersByTime(RESULT_DISPLAY_MS);
+    });
+    const lastNoun = result.current.currentTarget.noun;
+    expect(result.current.nickname).toBeNull();
+
+    act(() => {
+      result.current.handleRoundEnd(result.current.currentTarget.profile);
+    });
+
+    expect(result.current.nickname).not.toBeNull();
+    expect(result.current.nickname?.endsWith(lastNoun)).toBe(true);
+  });
 });
