@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getTopRanking } from "@/services/ranking-client";
 import type { RankingEntry } from "@/types/pottery";
+import { RankingList } from "./ranking-list";
 
 export interface MainScreenProps {
   onStart: () => void;
@@ -15,9 +16,13 @@ export function MainScreen({ onStart }: MainScreenProps) {
 
   useEffect(() => {
     let cancelled = false;
-    getTopRanking().then((entries) => {
-      if (!cancelled) setRanking(entries);
-    });
+    getTopRanking()
+      .then((entries) => {
+        if (!cancelled) setRanking(entries);
+      })
+      .catch((err) => {
+        console.error("랭킹을 불러오지 못했습니다", err);
+      });
     return () => {
       cancelled = true;
     };
@@ -41,18 +46,7 @@ export function MainScreen({ onStart }: MainScreenProps) {
           {ranking === null ? null : ranking.length === 0 ? (
             <p className="text-sm text-muted-foreground">아직 등록된 기록이 없습니다</p>
           ) : (
-            <ol className="flex flex-col gap-2" data-testid="ranking-list">
-              {ranking.map((entry, i) => (
-                <li
-                  key={`${entry.nickname}-${entry.registeredAt}`}
-                  className="flex items-center gap-3 border-b py-2 last:border-b-0"
-                >
-                  <span className="w-6 text-right">{i + 1}</span>
-                  <span className="flex-1">{entry.nickname}</span>
-                  <span className="font-bold">{entry.score}</span>
-                </li>
-              ))}
-            </ol>
+            <RankingList entries={ranking} />
           )}
         </CardContent>
       </Card>

@@ -1,3 +1,4 @@
+import { MAX_NICKNAME_LENGTH, MAX_TOTAL_SCORE } from "@/config/pottery";
 import { DEFAULT_RANKING_PATH, readTop5, submitScore } from "@/lib/ranking/store";
 import type { RankingEntry } from "@/types/pottery";
 
@@ -6,11 +7,34 @@ export async function GET() {
   return Response.json(entries);
 }
 
+function parseEntryInput(body: unknown): { nickname: string; score: number } | null {
+  if (typeof body !== "object" || body === null) return null;
+  const { nickname, score } = body as Record<string, unknown>;
+  if (typeof nickname !== "string" || nickname.trim().length === 0) return null;
+  if (typeof score !== "number" || !Number.isFinite(score)) return null;
+
+  return {
+    nickname: nickname.trim().slice(0, MAX_NICKNAME_LENGTH),
+    score: Math.min(MAX_TOTAL_SCORE, Math.max(0, Math.round(score))),
+  };
+}
+
 export async function POST(request: Request) {
-  const body = (await request.json()) as { nickname: string; score: number };
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "invalid JSON body" }, { status: 400 });
+  }
+
+  const parsed = parseEntryInput(body);
+  if (!parsed) {
+    return Response.json({ error: "nickname(string)과 score(number)가 필요합니다" }, { status: 400 });
+  }
+
   const entry: RankingEntry = {
-    nickname: body.nickname,
-    score: body.score,
+    nickname: parsed.nickname,
+    score: parsed.score,
     registeredAt: Date.now(),
   };
 

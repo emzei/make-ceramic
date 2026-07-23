@@ -5,6 +5,8 @@ export const BASE_CLAY_RADIUS = 45;
 export const ROUND_DURATION_MS = 15000;
 export const RESULT_DISPLAY_MS = 2000;
 export const TOTAL_ROUNDS = 3;
+export const MAX_TOTAL_SCORE = TOTAL_ROUNDS * 100;
+export const MAX_NICKNAME_LENGTH = 40;
 
 type ControlPoint = [heightFraction: number, radius: number];
 

@@ -91,5 +91,23 @@ describe("ranking store", () => {
       expect(result.entries[0]).toEqual(existing[0]);
       expect(result.entries[1]).toEqual(entry);
     });
+
+    it("[INV-2] 동시에 여러 건이 제출되어도 읽기-수정-쓰기 경쟁으로 유실되지 않는다", async () => {
+      const submissions: RankingEntry[] = Array.from({ length: 8 }, (_, i) => ({
+        nickname: `p${i}`,
+        score: i * 10,
+        registeredAt: i,
+      }));
+
+      await Promise.all(submissions.map((entry) => submitScore(filePath, entry)));
+
+      const finalRanking = await readTop5(filePath);
+      const expectedTop5 = submissions
+        .slice()
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+
+      expect(finalRanking).toEqual(expectedTop5);
+    });
   });
 });

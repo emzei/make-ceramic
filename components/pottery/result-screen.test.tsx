@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { StrictMode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { submitScore } from "@/services/ranking-client";
 import { ResultScreen } from "./result-screen";
@@ -59,6 +60,23 @@ describe("ResultScreen", () => {
     await waitFor(() => expect(screen.getByTestId("ranking-list")).toBeInTheDocument());
     expect(screen.queryByTestId("own-ranking-row")).not.toBeInTheDocument();
     expect(screen.getByText("50")).toBeInTheDocument();
+  });
+
+  it("StrictMode의 effect 이중 실행에도 submitScore는 한 번만 호출되고 결과는 정상 표시된다", async () => {
+    mockedSubmitScore.mockResolvedValue({
+      entries: [{ nickname: "찌그러진 항아리", score: 231, registeredAt: 300 }],
+      madeTop5: true,
+      registeredAt: 300,
+    });
+
+    render(
+      <StrictMode>
+        <ResultScreen totalScore={231} nickname="찌그러진 항아리" onPlayAgain={vi.fn()} />
+      </StrictMode>
+    );
+
+    await waitFor(() => expect(screen.getByTestId("own-ranking-row")).toBeInTheDocument());
+    expect(mockedSubmitScore).toHaveBeenCalledTimes(1);
   });
 
   it("'다시 하기' 클릭 시 onPlayAgain이 호출된다", async () => {
