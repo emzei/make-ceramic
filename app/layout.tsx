@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "Kanban Todo",
-  description: "Kanban board application",
+  title: "도자기 물레 깎기",
+  description: "포인터로 반죽을 깎아 목표 도자기를 완성하는 3라운드 게임",
 };
 
 export default function RootLayout({

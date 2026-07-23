@@ -34,7 +34,9 @@ export function ResultScreen({ totalScore, nickname, onPlayAgain }: ResultScreen
     <div className="flex flex-col gap-6 p-6 md:flex-row md:gap-10">
       <div className="flex flex-col items-center gap-3 md:w-1/2 md:items-start">
         <span className="text-xs text-muted-foreground">최종 점수</span>
-        <span className="text-6xl font-bold">{totalScore}</span>
+        <span data-testid="total-score" className="text-6xl font-bold">
+          {totalScore}
+        </span>
         <span className="text-lg font-bold">{nickname}</span>
         <Button size="lg" className="mt-4" onClick={onPlayAgain}>
           다시 하기

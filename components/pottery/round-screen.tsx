@@ -141,7 +141,9 @@ export function RoundScreen({ targetProfile, roundIndex, totalRounds, roundScore
         {isResult && (
           <div className="flex flex-col items-center gap-1 rounded-lg border p-4">
             <span className="text-xs text-muted-foreground">라운드 점수</span>
-            <span className="text-5xl font-bold">{roundScore}</span>
+            <span data-testid="round-score-badge" className="text-5xl font-bold">
+              {roundScore}
+            </span>
           </div>
         )}
       </div>

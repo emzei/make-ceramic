@@ -24,3 +24,31 @@ date: 2026-07-23
 **에피소드**: `use-pottery-game.test.ts`의 "마지막 라운드 종료 후 자동 전환 없음" 테스트에서 `handleRoundEnd`와 `advanceTimersByTime(RESULT_DISPLAY_MS)`를 하나의 `act()`에 넣었더니 라운드가 2번만 전환되고 3라운드에 도달하지 못했다(`completedScores`도 중복 계산됨). 두 호출을 별도 `act()`로 나누자 정상화됐다.
 **증거**: 커밋 1749219, `hooks/use-pottery-game.test.ts` "마지막 라운드 종료 후에는 자동 전환이 일어나지 않는다" 통과.
 
+---
+
+---
+triggers: [waitFor, "vi.useFakeTimers", "Test timed out in 5000ms", "@testing-library/react", hang, timeout]
+status: verified
+scope: this-repo (vitest 4.x, @testing-library/react 16.x)
+date: 2026-07-23
+---
+## vi.useFakeTimers() 활성화 중에는 @testing-library의 waitFor/findBy*가 통째로 멈춘다
+
+**지시문**: 테스트에 `vi.useFakeTimers()`가 걸려 있는 동안에는 `waitFor`, `findByRole` 등 내부적으로 폴링하는 testing-library API를 쓰지 않는다. 폴링이 실제 `setTimeout`에 의존하는데 그 타이머 자체가 fake라서 절대 다시 실행되지 않고, 결과적으로 vitest의 `testTimeout`(기본 5000ms)까지 그대로 걸려 테스트가 타임아웃난다. 조건이 이미 동기적으로 참이면 `waitFor` 없이 바로 `expect(screen.getBy...)`로 단언하고, mock된 Promise의 `.then()` 콜백처럼 마이크로태스크 한 틱만 흘려보내면 되는 경우에는 `await act(async () => { await Promise.resolve(); })`로 대체한다.
+**에피소드**: `pottery-app.test.tsx`에서 `beforeEach`에 `vi.useFakeTimers()`를 걸어둔 채 `await waitFor(() => expect(screen.getByRole("button", { name: "시작하기" })).toBeInTheDocument())`를 호출했더니, 버튼은 이미 첫 렌더에 동기적으로 존재하는데도 두 테스트 모두 정확히 5000ms에서 타임아웃났다. `waitFor`를 제거하고 동기 `expect`로 바꾸자(그리고 `submitScore` mock 결과를 반영해야 하는 자리는 `act(async () => { await Promise.resolve(); })`로) 즉시 통과했다.
+**증거**: `components/pottery/pottery-app.test.tsx` "[S1-2]", "[S8-1]" 케이스, waitFor 제거 전후 실행 결과 비교 (제거 전 2/2 타임아웃 실패 → 제거 후 2/2 통과, 1.76s).
+
+---
+
+---
+triggers: [playwright, e2e, "fullyParallel", "data/ranking.json", "shared file", race, "toHaveCount"]
+status: verified
+scope: this-repo (Playwright 1.52.x, 로컬 파일 기반 공유 상태를 다루는 모든 E2E)
+date: 2026-07-23
+---
+## 서버 파일을 공유하는 E2E 테스트는 fullyParallel 기본값 때문에 서로 오염된다
+
+**지시문**: E2E 테스트 여러 개가 같은 서버 프로세스가 관리하는 공유 상태(이 프로젝트에서는 `data/ranking.json` 같은 로컬 파일)를 읽거나 쓴다면, `playwright.config.ts`의 `fullyParallel: true` 기본값 아래서는 서로 다른 워커가 동시에 그 상태를 건드려 레이스가 난다. 이런 테스트들은 `test.describe.configure({ mode: "serial" })`로 묶어 같은 파일을 다루는 테스트끼리 순차 실행되게 한다. 전역 설정을 바꾸지 말고 파일 단위로 국소적으로 처리한다.
+**에피소드**: `e2e/pottery.spec.ts`의 "골든 패스"(랭킹을 빈 배열로 초기화 후 자기 점수를 top5에 등록)와 "S7-2"(5개의 만점 더미 기록을 시딩 후 자신은 top5에 못 들어야 함) 테스트가 병렬 워커에서 동시에 같은 `data/ranking.json`을 시딩·기록하면서 서로의 상태를 덮어써, S7-2가 `own-ranking-row`를 0개 기대했는데 1개가 나와 실패했다. `test.describe.configure({ mode: "serial" })`를 파일 상단에 추가해 두 테스트를 순차 실행시키자 3/3 통과했다.
+**증거**: `e2e/pottery.spec.ts`, 직렬화 적용 전 1 failed / 2 passed → 적용 후 3 passed (12.1s).
+
